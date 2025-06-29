@@ -1,3 +1,4 @@
+# Defines custom exception classes
 class DownloadError(Exception):
     """Exception raised for errors in the download process."""
     def __init__(self, message: str):

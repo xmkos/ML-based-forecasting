@@ -1,3 +1,4 @@
+# Packaging configuration for the project
 from setuptools import setup, find_packages
 
 setup(

@@ -1,5 +1,4 @@
-# File: tests/test_data_collector.py
-# Unit tests for WeatherDataCollector API integration
+# Tests for the data collector component
 
 import pytest
 import sys
@@ -7,7 +6,6 @@ import os
 import json
 from unittest.mock import patch, MagicMock, Mock
 
-# Add parent directory to path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from weather_predictor.data_collector import WeatherDataCollector
@@ -25,14 +23,12 @@ class TestWeatherDataCollector:
 
     def test_initialization_without_api_key(self):
         """Test initialization without API key"""
-        # Should accept empty or None API key but might fail later
         collector = WeatherDataCollector('')
         assert collector.api_key == ''
 
     @patch('weather_predictor.data_collector.requests.get')
     def test_get_current_weather_success(self, mock_get):
         """Test successful current weather API call"""
-        # Mock successful API response
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.json.return_value = {
@@ -46,14 +42,12 @@ class TestWeatherDataCollector:
         collector = WeatherDataCollector('test_api_key')
         result = collector.get_current('TestCity')
         
-        # Verify API call
         mock_get.assert_called_once()
         call_args = mock_get.call_args[0][0]
         assert 'TestCity' in call_args
         assert 'test_api_key' in call_args
         assert 'units=metric' in call_args
         
-        # Verify result structure
         assert 'main' in result
         assert 'weather' in result
         assert result['main']['temp'] == 22.5
@@ -61,7 +55,6 @@ class TestWeatherDataCollector:
     @patch('weather_predictor.data_collector.requests.get')
     def test_get_current_weather_api_error(self, mock_get):
         """Test API error handling in get_current"""
-        # Mock API error response
         mock_response = MagicMock()
         mock_response.status_code = 404
         mock_response.json.return_value = {
@@ -73,33 +66,28 @@ class TestWeatherDataCollector:
         collector = WeatherDataCollector('test_api_key')
         result = collector.get_current('InvalidCity')
         
-        # Should return error information
         assert 'error' in result or 'cod' in result or 'message' in result
 
     @patch('weather_predictor.data_collector.requests.get')
     def test_get_current_weather_network_error(self, mock_get):
         """Test network error handling"""
-        # Mock network error
         mock_get.side_effect = Exception('Network error')
         
         collector = WeatherDataCollector('test_api_key')
         result = collector.get_current('TestCity')
         
-        # Should handle exception gracefully
         assert isinstance(result, dict)
         assert 'error' in result
 
     @patch('weather_predictor.data_collector.requests.get')
     def test_get_current_weather_timeout(self, mock_get):
         """Test timeout handling"""
-        # Mock timeout
         import requests
         mock_get.side_effect = requests.Timeout('Request timed out')
         
         collector = WeatherDataCollector('test_api_key')
         result = collector.get_current('TestCity')
         
-        # Should handle timeout gracefully
         assert isinstance(result, dict)
         assert 'error' in result
 
@@ -114,7 +102,6 @@ class TestWeatherDataCollector:
     @patch('weather_predictor.data_collector.requests.get')
     def test_get_forecast_success(self, mock_get):
         """Test successful forecast API call"""
-        # Mock successful forecast response
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.json.return_value = {
@@ -139,13 +126,11 @@ class TestWeatherDataCollector:
         collector = WeatherDataCollector('test_api_key')
         result = collector.get_forecast('TestCity')
         
-        # Verify API call structure
         mock_get.assert_called_once()
         call_args = mock_get.call_args[0][0]
         assert 'forecast' in call_args
         assert 'TestCity' in call_args
         
-        # Verify result structure
         assert 'list' in result or isinstance(result, list)
 
     @patch('weather_predictor.data_collector.requests.get')
@@ -160,7 +145,6 @@ class TestWeatherDataCollector:
         collector = WeatherDataCollector(api_key)
         collector.get_current('TestCity')
         
-        # Check that API key is in the URL
         call_args = mock_get.call_args[0][0]
         assert api_key in call_args
 
@@ -175,7 +159,6 @@ class TestWeatherDataCollector:
         collector = WeatherDataCollector('test_api_key')
         collector.get_current('TestCity')
         
-        # Check that metric units are requested
         call_args = mock_get.call_args[0][0]
         assert 'units=metric' in call_args
 
@@ -187,7 +170,6 @@ class TestWeatherDataCollector:
         if hasattr(collector, 'get_historical'):
             assert callable(collector.get_historical)
             
-            # Test call structure
             mock_response = MagicMock()
             mock_response.status_code = 200
             mock_response.json.return_value = {'data': []}
@@ -197,10 +179,9 @@ class TestWeatherDataCollector:
                 result = collector.get_historical('TestCity', days=30)
                 mock_get.assert_called()
             except Exception:
-                pass  # Method might need specific parameters    @patch('weather_predictor.data_collector.requests.get')
+                pass
     def test_data_sanitization(self, mock_get):
         """Test data sanitization for debugging"""
-        # Mock response with sensitive data
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.json.return_value = {
@@ -211,15 +192,12 @@ class TestWeatherDataCollector:
         
         collector = WeatherDataCollector('secret_api_key')
         
-        # Check if sanitization method exists
         if hasattr(collector, '_sanitize_api_response'):
             test_data = {'sensitive': 'secret_api_key', 'normal': 'data'}
             sanitized = collector._sanitize_api_response(test_data)
             
-            # Should not contain the API key
             assert 'secret_api_key' not in str(sanitized)
         else:
-            # If method doesn't exist, that's also acceptable
             assert True
 
     @patch('weather_predictor.data_collector.requests.get')
@@ -227,7 +205,6 @@ class TestWeatherDataCollector:
         """Test response validation"""
         collector = WeatherDataCollector('test_api_key')
         
-        # Test with invalid JSON response
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.json.side_effect = json.JSONDecodeError('Invalid JSON', 'doc', 0)
@@ -236,7 +213,6 @@ class TestWeatherDataCollector:
         
         result = collector.get_current('TestCity')
         
-        # Should handle JSON decode error
         assert isinstance(result, dict)
         assert 'error' in result
 
@@ -261,7 +237,6 @@ class TestWeatherDataCollector:
     @patch('weather_predictor.data_collector.requests.get')
     def test_api_rate_limiting(self, mock_get):
         """Test API rate limiting handling"""
-        # Mock rate limit response
         mock_response = MagicMock()
         mock_response.status_code = 429
         mock_response.json.return_value = {
@@ -273,7 +248,6 @@ class TestWeatherDataCollector:
         collector = WeatherDataCollector('test_api_key')
         result = collector.get_current('TestCity')
         
-        # Should handle rate limiting gracefully
         assert isinstance(result, dict)
         assert ('cod' in result and result['cod'] == 429) or 'error' in result
 
@@ -281,11 +255,7 @@ class TestWeatherDataCollector:
         """Test that debug output can be controlled"""
         collector = WeatherDataCollector('test_api_key')
         
-        # Check if there's a way to control debug output
         if hasattr(collector, 'debug') or hasattr(collector, 'verbose'):
-            # Debug mode should be configurable
             assert True
         else:
-            # At minimum, debug output should be present in the current implementation
-            # based on the print statements we saw in the code
             assert True
