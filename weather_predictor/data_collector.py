@@ -1,3 +1,4 @@
+# Retrieves weather data from API
 import requests
 import json
 import time
@@ -13,15 +14,12 @@ class WeatherDataCollector:
         
         try:
             print(f"Fetching current weather for {city}...")
-            response = requests.get(url, timeout=10)  # Add timeout
+            response = requests.get(url, timeout=10)
             
-            # Debug the response
             print(f"API Response status: {response.status_code}")
             
-            # Save response for debugging
             try:
                 data = response.json()
-                # Debug log the structure without exposing API key
                 safe_data = self._sanitize_api_response(data)
                 debug_msg = f"API Response data: {json.dumps(safe_data, indent=2)}"
                 print(debug_msg[:500] + "..." if len(debug_msg) > 500 else debug_msg)
@@ -34,7 +32,6 @@ class WeatherDataCollector:
                     'status_code': response.status_code
                 }
             
-            # Check for HTTP errors
             if response.status_code != 200:
                 print(f"Error fetching weather for {city}: Status code {response.status_code}")
                 return {
@@ -43,10 +40,8 @@ class WeatherDataCollector:
                     'message': f"API Error: {data.get('message', 'Unknown error')}"
                 }
                 
-            # Create fallback data if main section is missing
             if 'main' not in data:
                 print(f"Warning: API response for {city} is missing 'main' section")
-                # Create fallback weather data based on average conditions
                 fallback_data = self._create_fallback_weather(city)
                 print(f"Using fallback weather data: {fallback_data}")
                 return fallback_data
@@ -71,10 +66,8 @@ class WeatherDataCollector:
         if not isinstance(data, dict):
             return {'error': 'Response is not a dictionary'}
         
-        # Make a copy to avoid modifying the original
         safe_data = data.copy()
         
-        # Remove potentially sensitive information
         if 'appid' in safe_data:
             safe_data['appid'] = '[REDACTED]'
         
@@ -85,13 +78,10 @@ class WeatherDataCollector:
         import datetime
         import random
         
-        # Get current time
         now = datetime.datetime.now()
         
-        # Generate reasonable fallback data
-        temp = 15 + random.uniform(-5, 5)  # Average temperature around 15°C
+        temp = 15 + random.uniform(-5, 5)
         
-        # Create a complete fallback structure matching what the API would normally return
         return {
             'coord': {'lon': 0, 'lat': 0},
             'weather': [{
@@ -129,7 +119,7 @@ class WeatherDataCollector:
             'id': 0,
             'name': f"{city} (fallback data)",
             'cod': 200,
-            '_fallback': True  # Flag to indicate this is fallback data
+            '_fallback': True
         }
 
     def get_forecast(self, city: str) -> dict:
@@ -149,7 +139,6 @@ class WeatherDataCollector:
                 
             data = response.json()
             
-            # Validate API response
             if 'list' not in data or not data['list']:
                 print(f"Warning: API forecast response for {city} is missing 'list' section or empty")
                 fallback = self._create_fallback_forecast(city)
@@ -169,22 +158,18 @@ class WeatherDataCollector:
         import datetime
         import random
         
-        # Get current time
         now = datetime.datetime.now()
         
-        # Generate 5 days of forecast data (3-hour intervals)
         forecast_list = []
-        base_temp = 15  # Start with an average temperature
+        base_temp = 15
         
         for day in range(5):
             for hour in [0, 3, 6, 9, 12, 15, 18, 21]:
                 forecast_time = now + datetime.timedelta(days=day, hours=hour)
                 
-                # Vary temperature by time of day
                 temp_offset = -5 if hour < 6 else (5 if 10 <= hour <= 16 else 0)
                 temp = base_temp + temp_offset + random.uniform(-3, 3)
                 
-                # Determine weather condition (mostly clear or cloudy)
                 weather_main = random.choice(['Clear', 'Clouds', 'Clouds', 'Rain']) 
                 weather_desc = 'clear sky' if weather_main == 'Clear' else 'scattered clouds' if weather_main == 'Clouds' else 'light rain'
                 
@@ -224,5 +209,5 @@ class WeatherDataCollector:
                 'sunrise': int((now.replace(hour=6, minute=0, second=0)).timestamp()),
                 'sunset': int((now.replace(hour=18, minute=0, second=0)).timestamp())
             },
-            '_fallback': True  # Flag to indicate this is fallback data
+            '_fallback': True
         }

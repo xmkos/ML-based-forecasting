@@ -1,4 +1,4 @@
-# Main entry script for the weather prediction system with CLI, GUI and demo modes
+# Main entry script providing CLI, GUI and demo modes
 
 import sys
 import os
@@ -47,11 +47,9 @@ def run_ml_demo(city="Wroclaw", training_days=30, model_type="rf", force_retrain
         
         predictor = WeatherPredictor(model_type=model_type)
         
-        # Validate current weather data with error handling
         try:
             current_weather = predictor.get_current_weather(city)
             
-            # Verify the expected data structure exists
             if 'main' not in current_weather:
                 print(f"Error: Invalid weather data format for {city}")
                 if 'message' in current_weather:
@@ -59,7 +57,7 @@ def run_ml_demo(city="Wroclaw", training_days=30, model_type="rf", force_retrain
                 return
                 
             print(f"\nCURRENT WEATHER IN {city.upper()}:")
-            print(f"   Temperature: {current_weather['main']['temp']} deg C")  # Changed °C to deg C for encoding compatibility
+            print(f"   Temperature: {current_weather['main']['temp']} deg C")
             print(f"   Description: {current_weather['weather'][0]['description']}")
             print(f"   Humidity: {current_weather['main']['humidity']}%")
             print(f"   Pressure: {current_weather['main']['pressure']} hPa")
@@ -69,7 +67,6 @@ def run_ml_demo(city="Wroclaw", training_days=30, model_type="rf", force_retrain
             print(f"Error getting current weather: {str(e)}")
             print("Cannot proceed without valid weather data.")
             return
-          # Training section
         if not predictor.is_model_trained() or force_retrain:
             print(f"Training ML model using {training_days} days of historical data...")
             print("This might take a few minutes for better accuracy...")
@@ -80,10 +77,8 @@ def run_ml_demo(city="Wroclaw", training_days=30, model_type="rf", force_retrain
             
             print(f"Model training completed in {training_time:.2f} seconds!")
             
-            # Display validation metrics with error handling
             print("\nVALIDATION METRICS:")
             if validation_metrics and isinstance(validation_metrics, dict):
-                # Check for each metric individually and handle missing ones
                 if 'mae' in validation_metrics:
                     print(f"   Mean Absolute Error: {validation_metrics['mae']:.2f} deg C")
                 else:
@@ -101,10 +96,8 @@ def run_ml_demo(city="Wroclaw", training_days=30, model_type="rf", force_retrain
                 else:
                     print("   R^2 Score: Not available")
                 
-                # Debug info to see what metrics are actually available
                 print(f"   Available metrics: {list(validation_metrics.keys())}")
                 
-                # Warning about model accuracy (only if RMSE is available)
                 if rmse_value is not None and rmse_value > 3.0:
                     print("Warning: Model accuracy is low. Consider using more training data")
                     print("   or trying a different model type (--model gb or --model nn)")
@@ -114,7 +107,6 @@ def run_ml_demo(city="Wroclaw", training_days=30, model_type="rf", force_retrain
         else:
             print("ML model already trained! Use --force-retrain to train again.")
         
-        # Prediction section with more robust error handling
         try:
             print("\nGENERATING PREDICTION COMPARISON...")
             result = predictor.predict_weather_with_comparison(city)
@@ -134,7 +126,6 @@ def run_ml_demo(city="Wroclaw", training_days=30, model_type="rf", force_retrain
             print(f"   Date: {ml_pred['prediction_date']}")
             print(f"   Predicted Temperature: {ml_pred['predicted_temp']:.1f} deg C")
             
-            # Add new predictions if available
             if 'predicted_humidity' in ml_pred and ml_pred['predicted_humidity'] is not None:
                 print(f"   Predicted Humidity: {ml_pred['predicted_humidity']:.0f}%")
             
@@ -144,17 +135,14 @@ def run_ml_demo(city="Wroclaw", training_days=30, model_type="rf", force_retrain
             if 'predicted_condition' in ml_pred and ml_pred['predicted_condition'] is not None:
                 print(f"   Predicted Weather: {ml_pred['predicted_condition']}")
             
-            # Get the actual model used from the prediction
             model_used = ml_pred.get('model_used', 'Unknown')
             print(f"   Model Used: {model_used}")
             
-            # Print model insights safely
             if 'model_insights' in ml_pred and ml_pred['model_insights']:
                 print(f"\nMODEL FEATURE IMPORTANCE:")
                 for feature, importance in ml_pred['model_insights'].items():
                     print(f"   {feature}: {importance:.3f}")
             
-            # Handle API forecast data safely
             if 'api_forecast' in comparison and comparison['api_forecast']:
                 api_forecast = comparison['api_forecast']
                 if 'api_avg_temp' in api_forecast and api_forecast['api_avg_temp'] is not None:
@@ -175,7 +163,6 @@ def run_ml_demo(city="Wroclaw", training_days=30, model_type="rf", force_retrain
                         else:
                             print("   Significant difference between ML and API for temperature")
                     
-                    # Add humidity comparison
                     if 'predicted_humidity' in ml_pred and ml_pred['predicted_humidity'] is not None and \
                        'api_avg_humidity' in api_forecast and api_forecast['api_avg_humidity'] is not None:
                         print(f"   Average Humidity: {api_forecast['api_avg_humidity']:.0f}%")
@@ -191,7 +178,6 @@ def run_ml_demo(city="Wroclaw", training_days=30, model_type="rf", force_retrain
                             else:
                                 print("   Moderate agreement between ML and API for humidity")
                     
-                    # Add wind speed comparison
                     if 'predicted_wind' in ml_pred and ml_pred['predicted_wind'] is not None and \
                        'api_avg_wind' in api_forecast and api_forecast['api_avg_wind'] is not None:
                         print(f"   Average Wind Speed: {api_forecast['api_avg_wind']:.1f} m/s")
@@ -207,10 +193,9 @@ def run_ml_demo(city="Wroclaw", training_days=30, model_type="rf", force_retrain
                             else:
                                 print("   Moderate agreement between ML and API for wind")
                 
-                # Display forecast details safely
                 if 'detailed_forecasts' in api_forecast and api_forecast['detailed_forecasts']:
                     print(f"\nDETAILED API FORECASTS FOR TOMORROW:")
-                    for forecast in api_forecast['detailed_forecasts'][:3]:  # Show first 3
+                    for forecast in api_forecast['detailed_forecasts'][:3]:
                         if all(key in forecast for key in ['dt_txt', 'main', 'weather']):
                             time = forecast['dt_txt']
                             temp = forecast['main']['temp']
@@ -221,7 +206,6 @@ def run_ml_demo(city="Wroclaw", training_days=30, model_type="rf", force_retrain
             print(f"Error generating prediction: {str(e)}")
             import traceback
             traceback.print_exc()
-              # Display model information safely
         if 'model_info' in result:
             print(f"\nMODEL INFORMATION:")
             print(f"   {result['model_info']}")
@@ -236,14 +220,12 @@ def run_ml_demo(city="Wroclaw", training_days=30, model_type="rf", force_retrain
         import traceback
         traceback.print_exc()
         
-        # Additional debugging information
         print("\nDEBUG INFORMATION:")
         print(f"City: {city}")
         print(f"Training days: {training_days}")
         print(f"Model type: {model_type}")
         print(f"Force retrain: {force_retrain}")
         
-        # Check if the predictor was created successfully
         try:
             if 'predictor' in locals():
                 print(f"Predictor created: Yes")

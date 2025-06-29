@@ -1,18 +1,15 @@
-# File: tests/test_imports.py
-# Unit tests for module imports and basic functionality
+# Tests for importability of modules
 
 import pytest
 import sys
 import os
 
-# Add parent directory to path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 def test_weather_predictor_import():
     """Test that WeatherPredictor can be imported and initialized"""
     try:
         from weather_predictor.predictor import WeatherPredictor
-        # Test basic attributes without requiring API key
         assert hasattr(WeatherPredictor, '__init__')
         assert hasattr(WeatherPredictor, 'get_current_weather')
         assert hasattr(WeatherPredictor, 'train_model')
@@ -26,9 +23,7 @@ def test_ml_model_import():
         from weather_predictor.ml_model import WeatherMLPredictor
         assert hasattr(WeatherMLPredictor, '__init__')
         assert hasattr(WeatherMLPredictor, 'train_model')
-        # Use actual method names from the implementation
         assert hasattr(WeatherMLPredictor, 'predict_weather') or hasattr(WeatherMLPredictor, 'predict_tomorrow_weather')
-        # Check MODEL_TYPES class attribute
         assert hasattr(WeatherMLPredictor, 'MODEL_TYPES')
         assert 'rf' in WeatherMLPredictor.MODEL_TYPES
         assert 'gb' in WeatherMLPredictor.MODEL_TYPES
@@ -67,7 +62,6 @@ def test_exceptions_import():
     """Test that custom exceptions can be imported"""
     try:
         from weather_predictor.exceptions import DataError, ModelLoadError, DownloadError
-        # Test that they are proper exception classes
         assert issubclass(DataError, Exception)
         assert issubclass(ModelLoadError, Exception)
         assert issubclass(DownloadError, Exception)
@@ -78,7 +72,6 @@ def test_config_import():
     """Test that config can be imported"""
     try:
         from weather_predictor.config import API_KEY
-        # API_KEY might be None if not set, but should be importable
         assert API_KEY is None or isinstance(API_KEY, str)
     except ImportError as e:
         pytest.fail(f"Failed to import config: {e}")
@@ -88,7 +81,6 @@ def test_package_init():
     try:
         import weather_predictor
         from weather_predictor import WeatherPredictor, WeatherMLPredictor, WeatherDataCollector
-        # Test that main classes are available from package
         assert WeatherPredictor is not None
         assert WeatherMLPredictor is not None
         assert WeatherDataCollector is not None
@@ -121,13 +113,11 @@ def test_ml_model_types():
     """Test that ML model types are properly defined"""
     from weather_predictor.ml_model import WeatherMLPredictor
     
-    # Test MODEL_TYPES structure
     model_types = WeatherMLPredictor.MODEL_TYPES
     assert isinstance(model_types, dict)
     
-    # Test that all expected model types are present
     expected_types = ['rf', 'gb', 'ridge', 'elastic', 'svr', 'nn']
     for model_type in expected_types:
         assert model_type in model_types
-        assert len(model_types[model_type]) == 2  # Should be (name, class) tuple
-        assert isinstance(model_types[model_type][0], str)  # Name should be string
+        assert len(model_types[model_type]) == 2
+        assert isinstance(model_types[model_type][0], str)

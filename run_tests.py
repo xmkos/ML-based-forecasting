@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Runs the project test suite
 """
 Test Runner for Weather Prediction System
 
@@ -14,7 +15,6 @@ from pathlib import Path
 def run_tests():
     """Run the complete test suite"""
     
-    # Change to project directory
     project_dir = Path(__file__).parent
     os.chdir(project_dir)
     
@@ -30,11 +30,10 @@ def run_tests():
     print("  ✅ AI/ML Framework (scikit-learn)")
     print("=" * 60)
     
-    # Activate virtual environment and run tests
-    if os.name == 'nt':  # Windows
+    if os.name == 'nt':
         activate_cmd = r".\env\Scripts\activate"
         pytest_cmd = f"{activate_cmd}; python -m pytest tests\\ -v --tb=short"
-    else:  # Unix/Linux
+    else:
         activate_cmd = "source ./env/bin/activate"
         pytest_cmd = f"{activate_cmd} && python -m pytest tests/ -v --tb=short"
     
@@ -51,7 +50,6 @@ def run_tests():
         if result.stderr:
             print("STDERR:", result.stderr)
         
-        # Parse results
         if "failed" in result.stdout.lower():
             print("\n⚠️  Some tests failed, but this is expected during development")
         
@@ -106,7 +104,7 @@ def demo_functionality():
                 return True
             else:
                 print("⚠️  Demo mode completed with warnings (check API key)")
-                return True  # Still considered success if no crash
+                return True
         except Exception as e:
             print(f"❌ Demo failed: {e}")
             return False
@@ -119,13 +117,10 @@ if __name__ == "__main__":
     print("Academic Project Testing (Instructions.txt compliance)")
     print()
     
-    # Run main test suite
     tests_passed = run_tests()
     
-    # Run demo test
     demo_passed = demo_functionality()
     
-    # Final summary
     print("\n" + "=" * 60)
     print("🎓 ACADEMIC PROJECT TEST SUMMARY")
     print("=" * 60)

@@ -1,11 +1,9 @@
-# File: tests/test_exceptions.py
-# Unit tests for custom exceptions
+# Tests for custom exceptions
 
 import pytest
 import sys
 import os
 
-# Add parent directory to path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from weather_predictor.exceptions import DownloadError, ModelLoadError, DataError
@@ -92,7 +90,6 @@ class TestCustomExceptions:
     def test_exception_chaining(self):
         """Test exception chaining if supported"""
         try:
-            # Simulate a chain of exceptions
             try:
                 raise ValueError("Original error")
             except ValueError as e:
@@ -116,7 +113,6 @@ class TestCustomExceptions:
             elif error_type == "data":
                 raise DataError("Data invalid")
 
-        # Test catching specific types
         with pytest.raises(DownloadError):
             raise_random_error("download")
         
@@ -128,17 +124,14 @@ class TestCustomExceptions:
 
     def test_exception_attributes(self):
         """Test exception attributes and methods"""
-        # Test DownloadError
         download_error = DownloadError("Download test")
         assert hasattr(download_error, 'args')
         assert download_error.args[0] == "Download test"
 
-        # Test ModelLoadError with message attribute
         model_error = ModelLoadError("Model test")
         assert hasattr(model_error, 'message')
         assert model_error.message == "Model test"
 
-        # Test DataError
         data_error = DataError("Data test")
         assert hasattr(data_error, 'args')
         assert data_error.args[0] == "Data test"
@@ -164,21 +157,18 @@ class TestCustomExceptions:
         def simulate_data_processing():
             raise DataError("Invalid data format")
 
-        # Test API call error handling
         try:
             simulate_api_call()
             assert False, "Should have raised DownloadError"
         except DownloadError as e:
             assert "API connection failed" in str(e)
 
-        # Test model loading error handling
         try:
             simulate_model_loading()
             assert False, "Should have raised ModelLoadError"
         except ModelLoadError as e:
             assert "Model file not found" in str(e)
 
-        # Test data processing error handling
         try:
             simulate_data_processing()
             assert False, "Should have raised DataError"
@@ -187,7 +177,6 @@ class TestCustomExceptions:
 
     def test_exception_with_empty_message(self):
         """Test exceptions with empty messages"""
-        # Test with empty string
         error = DataError("")
         assert str(error) == ""
 
@@ -199,6 +188,4 @@ class TestCustomExceptions:
         assert ModelLoadError.__doc__ is not None
         assert "model" in ModelLoadError.__doc__.lower()
 
-        # DataError might not have docstring in current implementation
-        # but it should be a proper exception class
         assert issubclass(DataError, Exception)
